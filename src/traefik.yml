@@ -7,7 +7,7 @@ api:
   insecure: true
 
 entryPoints:
-  web_insecure:
+  web:
     address: ":80"
 
 providers:
