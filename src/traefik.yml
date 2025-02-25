@@ -9,8 +9,6 @@ api:
 entryPoints:
   web_insecure:
     address: ":80"
-  web_secure:
-    address: ":443"
 
 providers:
   docker:
