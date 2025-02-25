@@ -4,8 +4,13 @@ volumes:
   excalidraw-data:
 
 networks:
-  default:
-    name: private_network
+  public-network:
+    external: true
+    name: "public_network"
+  internal-network:
+    driver: overlay
+    internal: true
+    name: "private_network"
 
 services:
   traefik:
@@ -17,15 +22,14 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./traefik.yml:/traefik.yml:ro
     labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.traefik.rule=PathPrefix(`/dashboard`)"
-      - "traefik.http.routers.traefik.entrypoints=web"
-      - "traefik.http.routers.traefik.service=api@internal"
-    command:
-      - "--api.insecure=true"
-      - "--providers.docker=true"
-      - "--entrypoints.web.address=:80"
-      - "--providers.docker.exposedByDefault=false"
+      # core
+      - traefik.enable=true
+      - traefik.docker.network=public_network
+      - traefik.http.services.traefik.loadbalancer.server.port=8080
+      # http
+      - traefik.http.routers.traefik.entrypoints=web_insecure
+      - traefik.http.routers.traefik.rule=Host(`proxy.localhost`)
+      - traefik.http.routers.traefik.service=api@internal
 
   excalidraw:
     image: excalidraw/excalidraw:latest
@@ -33,7 +37,11 @@ services:
     volumes:
       - excalidraw-data:/app/data
     labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.excalidraw.rule=PathPrefix(`/excalidraw`)"
-      - "traefik.http.routers.excalidraw.entrypoints=web"
-      - "traefik.http.services.excalidraw.loadbalancer.server.port=80"
+      # core
+      - traefik.enable=true
+      - traefik.docker.network=public_network
+      # http
+      - traefik.http.routers.excalidraw.rule=Host(`draw.localhost`)
+      - traefik.http.routers.excalidraw.entrypoints=web_insecure
+      - traefik.http.services.excalidraw.loadbalancer.server.port=80
+      - traefik.http.routers.excalidraw.service=excalidraw
