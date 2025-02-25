@@ -6,11 +6,7 @@ volumes:
 networks:
   public-network:
     external: true
-    name: "public_network"
-  internal-network:
-    driver: overlay
-    internal: true
-    name: "private_network"
+    name: ${PUBLIC_NETWORK_NAME}
 
 services:
   traefik:
@@ -24,11 +20,11 @@ services:
     labels:
       # core
       - traefik.enable=true
-      - traefik.docker.network=public_network
+      - traefik.docker.network=${PUBLIC_NETWORK_NAME}
       - traefik.http.services.traefik.loadbalancer.server.port=8080
       # http
       - traefik.http.routers.traefik.entrypoints=web_insecure
-      - traefik.http.routers.traefik.rule=Host(`proxy.localhost`)
+      - traefik.http.routers.traefik.rule=Host(`${PROXY_DOMAIN}`)
       - traefik.http.routers.traefik.service=api@internal
 
   excalidraw:
@@ -39,9 +35,9 @@ services:
     labels:
       # core
       - traefik.enable=true
-      - traefik.docker.network=public_network
+      - traefik.docker.network=${PUBLIC_NETWORK_NAME}
       # http
-      - traefik.http.routers.excalidraw.rule=Host(`draw.localhost`)
+      - traefik.http.routers.excalidraw.rule=Host(`${EXCALIDRAW_DOMAIN}`)
       - traefik.http.routers.excalidraw.entrypoints=web_insecure
       - traefik.http.services.excalidraw.loadbalancer.server.port=80
       - traefik.http.routers.excalidraw.service=excalidraw
